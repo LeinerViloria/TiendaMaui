@@ -46,6 +46,17 @@ namespace Backend.Controllers
             return value;
         }
 
+        // POST api/<ProductController>
+        [HttpPost("addRange")]
+        public Product[] AddRange([FromBody] Product[] value)
+        {
+            using var context = dbContextFactory.CreateDbContext();
+            context.AddRange(value);
+            context.SaveChanges();
+
+            return value;
+        }
+
         // PUT api/<ProductController>/5
         [HttpPut("{rowid}")]
         public Product Put(int rowid, [FromBody] Product value)
