@@ -45,13 +45,15 @@ namespace Backend.Controllers
         }
 
         // DELETE api/<ClientController>/5
-        [HttpDelete("{id}")]
-        public void Delete(string email)
+        [HttpDelete("{email}")]
+        public bool Delete(string email)
         {
             using var context = dbContextFactory.CreateDbContext();
-            context.Set<Client>()
+            var result = context.Set<Client>()
                 .Where(x => x.Email == email)
                 .ExecuteDelete();
+
+            return result > 0;
         }
     }
 }
