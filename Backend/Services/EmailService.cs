@@ -1,6 +1,49 @@
-﻿namespace Backend.Services
+﻿using System.Net;
+using System.Net.Mail;
+
+namespace Backend.Services
 {
-    internal class EmailService
+    public class EmailService
     {
+        public bool SendEmail(string Subject, string Body, string SendTo)
+        {
+            var Host = "smtp.gmail.com";
+            var Port = 587;
+            var Alias = "TIENDA - AQUI_LO_ENCUENTRAS";
+            var FromEmail = "t84098030@gmail.com";
+            var Pass = "vmya ukrp rkec jozx";
+
+            var Sender = new MailAddress(FromEmail, Alias);
+            var BodyEmail = new MailMessage();
+
+            BodyEmail.Subject = Subject;
+            BodyEmail.IsBodyHtml = true;
+            BodyEmail.From = Sender;
+            BodyEmail.Body = Body;
+
+            BodyEmail.To.Add(SendTo);
+
+            var Client = new SmtpClient();
+            Client.UseDefaultCredentials = false;
+            Client.Host = Host;
+            Client.Port = Port;
+            Client.Credentials = new NetworkCredential(FromEmail, Pass);
+            Client.EnableSsl = true;
+            Client.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+            try
+            {
+                Client.Send(BodyEmail);
+                Client.Dispose();
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return false;
+            }
+
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Backend.Access;
 using Backend.DTOS;
 using Backend.Entities;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -9,9 +10,10 @@ namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PurchaseController(IDbContextFactory<TiendaContext> dbContextFactory) : ControllerBase
+    public class PurchaseController(IDbContextFactory<TiendaContext> dbContextFactory, EmailService emailService) : ControllerBase
     {
         private readonly IDbContextFactory<TiendaContext> dbContextFactory = dbContextFactory;
+        private readonly EmailService emailService = emailService;
 
         // POST api/<PurchaseController>
         [HttpPost]
@@ -58,6 +60,17 @@ namespace Backend.Controllers
                     throw new DataException("No hay items disponibles");
 
                 context.SaveChanges();
+
+                var Email = context.Set<Client>()
+                    .AsNoTracking()
+                    .Where(x => x.Rowid == Purchase.RowidCliente)
+                    .Select(x => x.Email)
+                    .First();
+
+                var EmailSended = emailService.SendEmail("Compra realizada", "Realizaste tu compra", Email);
+
+                if(!EmailSended)
+                    throw new DataException("Error al enviar el email");
 
                 context.Database.CommitTransaction();
             }

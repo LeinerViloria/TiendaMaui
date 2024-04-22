@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Backend.Access;
+using Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<EmailService>();
 
 var ConnectionString = builder.Configuration.GetSection("ConnectionString").Get<string>();
 
