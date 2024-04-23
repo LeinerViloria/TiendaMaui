@@ -73,15 +73,5 @@ namespace Backend.Controllers
                 .First(x => x.Rowid == rowid);
         }
 
-        // DELETE api/<ProductController>/5
-        [HttpDelete("{rowid}")]
-        public bool Delete(int rowid)
-        {
-            using var context = dbContextFactory.CreateDbContext();
-            var result = context.Set<Product>()
-                .Where(x => x.Rowid == rowid)
-                .ExecuteDelete();
-            return result > 0;
-        }
     }
 }
