@@ -7,7 +7,7 @@ namespace Backend.Entities
         [Key]
         public int Rowid { get; set; }
         [Required]
-        [StringLength(20)]
+        [StringLength(80)]
         public string Name { get; set; } = null!;
         [Required]
         public int Stock { get; set; }
