@@ -20,6 +20,7 @@ namespace Backend.Controllers
             using var context = dbContextFactory.CreateDbContext();
             return context.Set<Client>()
                 .AsNoTracking()
+                .Where(x => x.Status)
                 .ToList();
         }
 
@@ -30,7 +31,7 @@ namespace Backend.Controllers
             using var context = dbContextFactory.CreateDbContext();
             return context.Set<Client>()
                 .AsNoTracking()
-                .FirstOrDefault(x => x.Email.Contains(email));
+                .FirstOrDefault(x => x.Email.Contains(email) && x.Status);
         }
 
         // POST api/<ClientController>
@@ -38,6 +39,9 @@ namespace Backend.Controllers
         public Client Post([FromBody] Client value)
         {
             using var context = dbContextFactory.CreateDbContext();
+
+            value.Status = true;
+
             context.Add(value);
             context.SaveChanges();
 
@@ -49,11 +53,21 @@ namespace Backend.Controllers
         public bool Delete(string email)
         {
             using var context = dbContextFactory.CreateDbContext();
-            var result = context.Set<Client>()
-                .Where(x => x.Email == email)
-                .ExecuteDelete();
 
-            return result > 0;
+            var ClientHasPurchases = context.Set<Purchase>()
+                .AsNoTracking()
+                .Any(x => x.Client!.Email == email);
+            
+            int Result;
+            var Client = context.Set<Client>()
+                    .Where(x => x.Email == email);
+
+            if(ClientHasPurchases)
+                Result = Client.ExecuteUpdate(x => x.SetProperty(y=>y.Status, false));
+            else
+                Result = Client.ExecuteDelete();
+
+            return Result > 0;
         }
     }
 }

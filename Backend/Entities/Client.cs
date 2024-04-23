@@ -10,5 +10,7 @@ namespace Backend.Entities
         public int Rowid { get; set; }
         [Required]
         public string Email { get; set; } = null!;
+        [Required]
+        public bool Status {get; set; }
     }
 }
