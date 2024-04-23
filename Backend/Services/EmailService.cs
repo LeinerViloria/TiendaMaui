@@ -14,22 +14,25 @@ namespace Backend.Services
             var Pass = "vmya ukrp rkec jozx";
 
             var Sender = new MailAddress(FromEmail, Alias);
-            var BodyEmail = new MailMessage();
-
-            BodyEmail.Subject = Subject;
-            BodyEmail.IsBodyHtml = true;
-            BodyEmail.From = Sender;
-            BodyEmail.Body = Body;
+            var BodyEmail = new MailMessage()
+            {
+                Subject = Subject,
+                IsBodyHtml = true,
+                From = Sender,
+                Body = Body
+            };
 
             BodyEmail.To.Add(SendTo);
 
-            var Client = new SmtpClient();
-            Client.UseDefaultCredentials = false;
-            Client.Host = Host;
-            Client.Port = Port;
-            Client.Credentials = new NetworkCredential(FromEmail, Pass);
-            Client.EnableSsl = true;
-            Client.DeliveryMethod = SmtpDeliveryMethod.Network;
+            var Client = new SmtpClient()
+            {
+                UseDefaultCredentials = false,
+                Host = Host,
+                Port = Port,
+                Credentials = new NetworkCredential(FromEmail, Pass),
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+            };
 
             try
             {
