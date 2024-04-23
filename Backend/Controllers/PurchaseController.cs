@@ -54,7 +54,7 @@ namespace Backend.Controllers
                     .Where(x => x.Rowid == value.RowidProducto)
                     .First();
 
-                Product.Stock --;
+                Product.Stock -= Purchase.Cantidad;
 
                 if(Product.Stock < 0)
                     throw new DataException("No hay items disponibles");
