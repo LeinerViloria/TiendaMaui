@@ -17,55 +17,62 @@ namespace Backend.Controllers
 
         // POST api/<PurchaseController>
         [HttpPost]
-        public Purchase Post([FromBody] PurchaseDTO value)
+        public IEnumerable<Purchase> Post([FromBody] List<PurchaseDTO> values)
         {
-            if (value.Cantidad <= 0)
+
+            if (values.Exists(x=>x.Cantidad <= 0))
                 throw new DataException("Debe ingresar una cantidad válida");
 
-            using var context = dbContextFactory.CreateDbContext();
-
-            var Purchase = new Purchase()
+            var Purchases = values.Select(x => new Purchase()
             {
-                RowidCliente = value.RowidCliente,
-                RowidProducto = value.RowidProducto,
-                Cantidad = value.Cantidad,
-            };
+                RowidCliente = x.RowidCliente,
+                RowidProducto = x.RowidProducto,
+                Cantidad = x.Cantidad,
+            });
+
+            var Client = Purchases.First().RowidCliente;
+
+            if(Purchases.Any(x => x.RowidCliente != Client))
+                throw new DataException("Sólo un cliente puede realizar esta compra");
+
+            using var context = dbContextFactory.CreateDbContext();
 
             try
             {
                 context.Database.BeginTransaction();
 
-                var AvailableItems = context.Set<Product>()
-                .AsNoTracking()
-                .Where(x => x.Rowid == value.RowidProducto)
-                .Select(x => x.Stock)
-                .Single();
+                var Products = values.Select(x => x.RowidProducto);
 
-                if (AvailableItems <= 0)
-                    throw new DataException("No hay items disponibles");
+                var Items = context.Set<Product>()
+                .Where(x => Products.Contains(x.Rowid))
+                .ToList();
 
-                if (AvailableItems - value.Cantidad < 0)
-                    throw new DataException("No hay items disponibles");
+                var UnavailableProducts = Items.Where(x => x.Stock <= 0 || x.Stock - Purchases.First(y=>y.RowidProducto == x.Rowid).Cantidad < 0);
 
-                context.Add(Purchase);
+                if (UnavailableProducts.Any())
+                    throw new DataException($"No hay items disponibles para: \n{string.Join('\n', UnavailableProducts.Select(x=>x.Name))}");
+
+                context.AddRange(Purchases);
                 context.SaveChanges();
 
-                var Product = context.Set<Product>()
-                    .Where(x => x.Rowid == value.RowidProducto)
-                    .First();
+                foreach (var Purchase in Purchases)
+                {
+                    var CurrentProduct = Items.First(x => x.Rowid == Purchase.RowidProducto);
+                    CurrentProduct.Stock -= Purchase.Cantidad;
+                }
 
-                Product.Stock -= Purchase.Cantidad;
+                UnavailableProducts = Items.Where(x => x.Stock < 0);
 
-                if(Product.Stock < 0)
-                    throw new DataException("No hay items disponibles");
+                if (UnavailableProducts.Any())
+                    throw new DataException($"No hay los items solicitados para: \n{string.Join('\n', UnavailableProducts.Select(x=>x.Name))}");
 
                 context.SaveChanges();
 
                 var Email = context.Set<Client>()
                     .AsNoTracking()
-                    .Where(x => x.Rowid == Purchase.RowidCliente)
+                    .Where(x => Client == x.Rowid)
                     .Select(x => x.Email)
-                    .First();
+                    .Single();
 
                 var EmailSended = emailService.SendEmail("Compra realizada", "Realizaste tu compra", Email);
 
@@ -80,7 +87,7 @@ namespace Backend.Controllers
                 throw new DataException(ex.Message);
             }
 
-            return Purchase;
+            return Purchases;
         }
     }
 }
