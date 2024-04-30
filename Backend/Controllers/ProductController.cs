@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore;
 using Backend.Entities;
 using System.Xml.Linq;
+using Backend.Authorization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -37,6 +38,7 @@ namespace Backend.Controllers
 
         // POST api/<ProductController>
         [HttpPost]
+        [Authorize]
         public Product Post([FromBody] Product value)
         {
             using var context = dbContextFactory.CreateDbContext();
@@ -48,6 +50,7 @@ namespace Backend.Controllers
 
         // POST api/<ProductController>
         [HttpPost("addRange")]
+        [Authorize]
         public Product[] AddRange([FromBody] Product[] value)
         {
             using var context = dbContextFactory.CreateDbContext();
@@ -59,6 +62,7 @@ namespace Backend.Controllers
 
         // PUT api/<ProductController>/5
         [HttpPut("{rowid}")]
+        [Authorize]
         public Product Put(int rowid, [FromBody] Product value)
         {
             using var context = dbContextFactory.CreateDbContext();

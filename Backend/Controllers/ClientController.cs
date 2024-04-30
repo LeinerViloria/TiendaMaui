@@ -1,4 +1,5 @@
 ﻿using Backend.Access;
+using Backend.Authorization;
 using Backend.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class ClientController(IDbContextFactory<TiendaContext> dbContextFactory) : ControllerBase
     {

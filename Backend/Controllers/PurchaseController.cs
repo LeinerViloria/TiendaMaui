@@ -1,4 +1,5 @@
 ﻿using Backend.Access;
+using Backend.Authorization;
 using Backend.DTOS;
 using Backend.Entities;
 using Backend.Services;
@@ -9,6 +10,7 @@ using System.Data;
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class PurchaseController(IDbContextFactory<TiendaContext> dbContextFactory, EmailService emailService) : ControllerBase
     {
