@@ -33,6 +33,8 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
             var Result = Request.Content.ReadAsStringAsync()
                 .GetAwaiter()
                 .GetResult();
+
+            context.HttpContext.Items["TokenValidationResult"] = Result;
         }
         catch (Exception e)
         {
