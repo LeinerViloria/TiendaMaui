@@ -1,6 +1,9 @@
 
+using Backend.DTOS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 
 namespace Backend.Authorization;
@@ -34,7 +37,10 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
                 .GetAwaiter()
                 .GetResult();
 
-            context.HttpContext.Items["TokenValidationResult"] = Result;
+            var Json = JObject.Parse(Result);
+            var Data = Json["data"]!.ToObject<UserDTO>();
+
+            context.HttpContext.Items["TokenValidationResult"] = Data;
         }
         catch (Exception e)
         {
