@@ -23,6 +23,7 @@ namespace Backend.Controllers
             using var context = dbContextFactory.CreateDbContext();
             return context.Set<Product>()
                 .AsNoTracking()
+                .Where(x => x.Stock > 0)
                 .ToList();
         }
 
@@ -33,6 +34,7 @@ namespace Backend.Controllers
             using var context = dbContextFactory.CreateDbContext();
             return context.Set<Product>()
                 .AsNoTracking()
+                .Where(x => x.Stock > 0)
                 .FirstOrDefault(x => x.Name.Contains(Name));
         }
 

@@ -25,17 +25,8 @@ namespace Backend.Controllers
             if (values.Exists(x=>x.Cantidad <= 0))
                 throw new DataException("Debe ingresar una cantidad válida");
 
-            var Purchases = values.Select(x => new Purchase()
-            {
-                RowidCliente = x.RowidCliente,
-                RowidProducto = x.RowidProducto,
-                Cantidad = x.Cantidad,
-            });
-
-            var Client = Purchases.First().RowidCliente;
-
-            if(Purchases.Any(x => x.RowidCliente != Client))
-                throw new DataException("Sólo un cliente puede realizar esta compra");
+            var User = (UserDTO) HttpContext.Items["TokenValidationResult"]!;
+            IEnumerable<Purchase> Purchases = Enumerable.Empty<Purchase>();
 
             using var context = dbContextFactory.CreateDbContext();
 
@@ -49,10 +40,30 @@ namespace Backend.Controllers
                 .Where(x => Products.Contains(x.Rowid))
                 .ToList();
 
-                var UnavailableProducts = Items.Where(x => x.Stock <= 0 || x.Stock - Purchases.First(y=>y.RowidProducto == x.Rowid).Cantidad < 0);
+                var UnavailableProducts = Items.Where(x => x.Stock <= 0 || x.Stock - values.First(y=>y.RowidProducto == x.Rowid).Cantidad < 0);
 
                 if (UnavailableProducts.Any())
                     throw new DataException($"No hay items disponibles para: \n{string.Join('\n', UnavailableProducts.Select(x=>x.Name))}");
+
+                var Client = context.Set<Client>()
+                    .AsNoTracking()
+                    .FirstOrDefault(x => x.Email == User.Email) ?? new()
+                    {
+                        Email = User.Email,
+                        Status = true
+                    };
+                
+                context.Attach(Client);
+                context.Entry(Client);
+
+                context.SaveChanges();
+
+                Purchases = values.Select(x => new Purchase()
+                {
+                    RowidCliente = Client.Rowid,
+                    RowidProducto = x.RowidProducto,
+                    Cantidad = x.Cantidad,
+                });
 
                 context.AddRange(Purchases);
                 context.SaveChanges();
@@ -70,13 +81,7 @@ namespace Backend.Controllers
 
                 context.SaveChanges();
 
-                var Email = context.Set<Client>()
-                    .AsNoTracking()
-                    .Where(x => Client == x.Rowid)
-                    .Select(x => x.Email)
-                    .Single();
-
-                var EmailSended = emailService.SendEmail("Compra realizada", "Realizaste tu compra", Email);
+                var EmailSended = emailService.SendEmail("Compra realizada", "Realizaste tu compra", User.Email);
 
                 if(!EmailSended)
                     throw new DataException("Error al enviar el email");
