@@ -22,7 +22,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 
             if(string.IsNullOrEmpty(Token))
             {
-                context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+                context.Result = new JsonResult(new { success = false, message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
                 return;
             }
 
@@ -40,12 +40,14 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
             var Json = JObject.Parse(Result);
             var Data = Json["data"]!.ToObject<UserDTO>();
 
+            ArgumentNullException.ThrowIfNull(Data);
+
             context.HttpContext.Items["TokenValidationResult"] = Data;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            context.Result = new JsonResult(new { message = "Invalid token" }) { StatusCode = StatusCodes.Status401Unauthorized };
+            context.Result = new JsonResult(new { success = false, message = "Invalid token" }) { StatusCode = StatusCodes.Status401Unauthorized };
         }
     }
 }
